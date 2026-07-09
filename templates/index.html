@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Performance Prediction System | ML Powered</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="background-animation">
+        <div class="circle circle-1"></div>
+        <div class="circle circle-2"></div>
+        <div class="circle circle-3"></div>
+    </div>
+    
+    <div class="container">
+        <div class="header">
+            <div class="icon-wrapper">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 14l9-5-9-5-9 5 9 5z"></path>
+                    <path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"></path>
+                    <path d="M12 14v7"></path>
+                </svg>
+            </div>
+            <h1>Student Performance Prediction</h1>
+            <p class="subtitle">AI-Powered Final Score Prediction using Machine Learning</p>
+            <div class="badge">Linear Regression Model</div>
+        </div>
+        
+        <div class="form-container">
+            <form id="predictionForm">
+                <div class="form-group">
+                    <label for="attendance">
+                        <span class="label-icon">📊</span>
+                        Attendance Percentage
+                    </label>
+                    <div class="input-wrapper">
+                        <input type="number" id="attendance" name="attendance" 
+                               min="0" max="100" step="0.1" required 
+                               placeholder="Enter attendance (0-100)">
+                        <span class="input-suffix">%</span>
+                    </div>
+                    <div class="input-hint">Range: 0 to 100</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="internal_marks">
+                        <span class="label-icon">📝</span>
+                        Internal Marks
+                    </label>
+                    <div class="input-wrapper">
+                        <input type="number" id="internal_marks" name="internal_marks" 
+                               min="0" max="50" step="0.1" required 
+                               placeholder="Enter internal marks (0-50)">
+                        <span class="input-suffix">/50</span>
+                    </div>
+                    <div class="input-hint">Range: 0 to 50</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="assignment_score">
+                        <span class="label-icon">📋</span>
+                        Assignment Score
+                    </label>
+                    <div class="input-wrapper">
+                        <input type="number" id="assignment_score" name="assignment_score" 
+                               min="0" max="50" step="0.1" required 
+                               placeholder="Enter assignment score (0-50)">
+                        <span class="input-suffix">/50</span>
+                    </div>
+                    <div class="input-hint">Range: 0 to 50</div>
+                </div>
+                
+                <button type="submit" class="predict-btn" id="predictBtn">
+                    <span class="btn-text">Predict Final Score</span>
+                    <span class="btn-icon">→</span>
+                </button>
+            </form>
+            
+            <div id="result" class="result-container"></div>
+        </div>
+        
+        <div class="footer">
+            <p>Powered by Flask & Scikit-learn</p>
+        </div>
+    </div>
+    
+    <script>
+        const form = document.getElementById('predictionForm');
+        const resultDiv = document.getElementById('result');
+        const predictBtn = document.getElementById('predictBtn');
+        
+        // Add input validation feedback
+        const inputs = document.querySelectorAll('input[type="number"]');
+        inputs.forEach(input => {
+            input.addEventListener('input', function() {
+                const value = parseFloat(this.value);
+                const max = parseFloat(this.max);
+                const min = parseFloat(this.min);
+                
+                if (value > max) {
+                    this.value = max;
+                } else if (value < min) {
+                    this.value = min;
+                }
+                
+                // Visual feedback
+                if (this.value) {
+                    this.classList.add('has-value');
+                } else {
+                    this.classList.remove('has-value');
+                }
+            });
+        });
+        
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            predictBtn.disabled = true;
+            predictBtn.innerHTML = '<span class="btn-text">Predicting...</span><span class="btn-icon">⏳</span>';
+            
+            resultDiv.innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Analyzing data with ML model...</p>
+                </div>
+            `;
+            
+            // Smooth scroll to result
+            setTimeout(() => {
+                resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }, 100);
+            
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Determine category color and icon
+                    let categoryClass = 'category-good';
+                    let categoryIcon = '✅';
+                    if (data.performance_category === 'Average') {
+                        categoryClass = 'category-average';
+                        categoryIcon = '⚠️';
+                    } else if (data.performance_category === 'Poor') {
+                        categoryClass = 'category-poor';
+                        categoryIcon = '❌';
+                    }
+                    
+                    // Animate result appearance
+                    resultDiv.innerHTML = `
+                        <div class="success animate-in">
+                            <div class="result-header">
+                                <h2>🎯 Prediction Result</h2>
+                            </div>
+                            <div class="result-details">
+                                <div class="score-card">
+                                    <div class="score-label">Predicted Final Score</div>
+                                    <div class="score-value">${data.predicted_score}%</div>
+                                </div>
+                                <div class="category-card ${categoryClass}">
+                                    <span class="category-icon">${categoryIcon}</span>
+                                    <span class="category-text">${data.performance_category}</span>
+                                </div>
+                                <div class="input-summary">
+                                    <div class="summary-title">📊 Input Summary</div>
+                                    <div class="summary-grid">
+                                        <div class="summary-item">
+                                            <div class="summary-label">Attendance</div>
+                                            <div class="summary-value">${data.attendance}%</div>
+                                        </div>
+                                        <div class="summary-item">
+                                            <div class="summary-label">Internal Marks</div>
+                                            <div class="summary-value">${data.internal_marks}/50</div>
+                                        </div>
+                                        <div class="summary-item">
+                                            <div class="summary-label">Assignment</div>
+                                            <div class="summary-value">${data.assignment_score}/50</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="error animate-in">
+                            <span class="error-icon">⚠️</span>
+                            <p>${data.error}</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error animate-in">
+                        <span class="error-icon">❌</span>
+                        <p>Error: ${error.message}</p>
+                    </div>
+                `;
+            } finally {
+                predictBtn.disabled = false;
+                predictBtn.innerHTML = '<span class="btn-text">Predict Final Score</span><span class="btn-icon">→</span>';
+            }
+        });
+    </script>
+</body>
+</html>
