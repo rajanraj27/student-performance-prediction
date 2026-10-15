@@ -194,3 +194,33 @@ Student Performance Prediction System - Machine Learning Project
 ---
 
 ⭐ **Star this repo if you find it helpful!**
+
+
+## Safe Live Deployment (Render)
+
+This project can be deployed as a Python web service. The repository includes a `Procfile` and `render.yaml` for production startup and a `/health` endpoint for health checks.
+
+### Deploy using Render Blueprint
+
+1. Sign in to [Render](https://render.com/) and connect your GitHub account.
+2. Choose **New → Blueprint** and select `rajanraj27/student-performance-prediction`.
+3. Review the service settings in `render.yaml`, then apply the Blueprint.
+4. Wait for the build and deployment to finish. Open the `.onrender.com` URL shown in the Render dashboard.
+5. Test the home page and submit valid values, then test invalid values (for example, attendance above 100).
+6. Confirm the service health check at `https://YOUR-SERVICE.onrender.com/health` returns `{"status":"ok"}`.
+
+### Manual Render settings
+
+- **Branch:** `main`
+- **Runtime:** Python 3
+- **Build command:** `pip install -r requirements.txt`
+- **Start command:** `gunicorn app:app`
+- **Health check path:** `/health`
+
+### Production notes
+
+- The Flask development server and debug mode are not used in production; Gunicorn serves the app.
+- Do not commit secrets, API keys, virtual environments, or generated model files. The existing `.gitignore` excludes `.env` and `*.pkl`.
+- The model is trained from `dataset.csv` when the first prediction needs it if no saved model exists. Hosting filesystems may be ephemeral, so expect retraining after a restart; this small demo dataset should train quickly.
+- This is an educational demonstration, not a validated academic decision system. The dataset is small and predictions should not be used to make consequential decisions about students.
+- Before use by real users, add automated tests, monitoring, abuse/rate limiting, and a review of the data and model's real-world performance.
