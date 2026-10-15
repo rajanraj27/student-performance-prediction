@@ -109,7 +109,7 @@ http://localhost:5000
 
 2. **Web Application**:
    - Flask app (`app.py`) serves the web interface
-   - On startup, it automatically trains the model if `trained_model.pkl` doesn't exist
+   - On the first prediction, it trains the model if `trained_model.pkl` doesn't exist
    - The `/predict` route receives form data, validates inputs, and returns predictions
 
 3. **Prediction**:
@@ -141,7 +141,7 @@ When you submit the form, the application displays:
 
 ## Model Performance
 
-The Linear Regression model achieves high accuracy (R² Score typically > 0.99) on the test dataset, indicating strong predictive capability.
+The model's test R² score is printed during training. Because the included dataset is small and illustrative, this score is not evidence of reliable real-world accuracy; evaluate the model on representative, held-out data before drawing conclusions.
 
 ## Features
 
